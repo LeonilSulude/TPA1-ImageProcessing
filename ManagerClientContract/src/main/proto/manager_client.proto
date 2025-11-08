@@ -1,0 +1,17 @@
+syntax = "proto3";
+package manager_client;
+
+
+// Serviço exposto pelo ManagerServer aos Clients (obter ImgServer)
+service ManagerServerClientService {
+  rpc GetImgServer (GetImgServerRequest) returns (GetImgServerResponse);
+}
+
+
+message GetImgServerRequest {}
+
+
+message GetImgServerResponse {
+  string imgServerIp = 1;
+  int32 imgServerPort = 2;
+}

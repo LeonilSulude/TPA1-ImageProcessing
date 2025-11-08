@@ -1,0 +1,20 @@
+syntax = "proto3";
+package manager_server;
+
+
+// Serviço exposto pelo ManagerServer aos ImgServers (registo)
+service ManagerServerRegistrationService {
+  rpc RegisterImgServer (RegisterImgServerRequest) returns (RegisterImgServerResponse);
+}
+
+
+message RegisterImgServerRequest {
+  string imgServerIp = 1;
+  int32 imgServerPort = 2;
+}
+
+
+message RegisterImgServerResponse {
+  int32 redisPort = 1; // porto do Redis (host do Redis é o IP do Manager)
+  string status = 2; // "OK" ou mensagem de erro
+}

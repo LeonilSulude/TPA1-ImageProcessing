@@ -1,0 +1,40 @@
+syntax = "proto3";
+package img_client;
+
+// Serviço exposto pelo ImgServer aos Clients
+service ImgServerClientService {
+  // Upload (cliente -> servidor) com streaming de entrada
+  rpc UploadImage (stream ImageChunk) returns (UploadImageResponse);
+
+  // Download (servidor -> cliente) com streaming de saída
+  rpc DownloadImage (DownloadImageRequest) returns (stream DownloadImageChunk);
+}
+
+// Upload
+message ImageChunk {
+  bytes data = 1;
+}
+
+message UploadImageResponse {
+  string requestId = 1;
+  string message   = 2; // "RECEIVED" / "ERROR"
+}
+
+// Download
+message DownloadImageRequest {
+  string requestId = 1;
+}
+
+message DownloadImageChunk {
+  oneof payload {
+    bytes data                 = 1; // chunk da imagem
+    DownloadImageStatus status = 2; // status final ou redirect
+  }
+}
+
+message DownloadImageStatus {
+  string status       = 1; // "DONE", "PROCESSING", "REDIRECT", "ERROR"
+  string redirectIp   = 2; // se REDIRECT
+  int32  redirectPort = 3; // se REDIRECT
+  string message      = 4; // opcional
+}
