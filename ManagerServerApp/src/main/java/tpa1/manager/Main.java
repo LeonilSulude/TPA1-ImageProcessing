@@ -15,19 +15,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        int port = Integer.parseInt(System.getProperty("port", "50051"));
+        int managerPort = Integer.parseInt(System.getProperty("managerPort", "8000"));
         int redisPort = Integer.parseInt(System.getProperty("redisPort", "6379"));
         String managerIp = System.getProperty("managerIp", "127.0.0.1");
 
         ImgRegistry registry = new ImgRegistry(managerIp, redisPort);
 
-        Server server = ServerBuilder.forPort(port)
+        Server server = ServerBuilder.forPort(managerPort)
                 .addService(new RegService(registry))
                 .addService(new DistService(registry))
                 .build()
                 .start();
 
-        System.out.printf("ManagerServer a correr em %s:%d (RedisPort=%d)\n", managerIp, port, redisPort);
+        System.out.printf("ManagerServer a correr em %s:%d (RedisPort=%d)\n", managerIp, managerPort, redisPort);
         server.awaitTermination();
     }
 
