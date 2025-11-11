@@ -26,12 +26,12 @@ public class Main {
         // === Reforçar load balancer padrão pick_first ===
         io.grpc.LoadBalancerRegistry.getDefaultRegistry()
                 .register(new io.grpc.internal.PickFirstLoadBalancerProvider());
-        System.out.println("[DEBUG] PickFirstLoadBalancerProvider registado manualmente.");
+        debug("[DEBUG] PickFirstLoadBalancerProvider registado manualmente.");
 
         // === Forçar DNS resolver (sem reflection, mais seguro) ===
         io.grpc.NameResolverRegistry.getDefaultRegistry()
                 .register(new io.grpc.internal.DnsNameResolverProvider());
-        System.out.println("[DEBUG] DnsNameResolverProvider registado manualmente.");
+        debug("[DEBUG] DnsNameResolverProvider registado manualmente.");
 
         debug("[DEBUG] Stack IPv4 + DNS configurado com sucesso.");
 
@@ -83,7 +83,7 @@ public class Main {
             System.out.println("1. Enviar imagens");
             System.out.println("2. Descarregar imagens");
             System.out.println("3. Sair");
-            System.out.print("Escolha uma das opções: ");
+            System.out.print("Escolha uma das opcoes: ");
             String op = scanner.nextLine().trim();
 
             switch (op) {
