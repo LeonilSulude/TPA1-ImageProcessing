@@ -196,11 +196,10 @@ public class Main {
                     switch (s.getStatus()) {
                         case "REDIRECT" -> {
                             System.out.printf("[Client] Redirecionado para %s:%d%n", s.getRedirectIp(), s.getRedirectPort());
-                            ManagedChannel ch = NettyChannelBuilder.forAddress(s.getRedirectIp(), s.getRedirectPort())
+                            ManagedChannel redirectChannel = NettyChannelBuilder.forAddress(s.getRedirectIp(), s.getRedirectPort())
                                     .usePlaintext().build();
-                            var newStub = ImgServerClientServiceGrpc.newStub(ch);
-                            downloadAsync(newStub, requestId);
-                            ch.shutdownNow();
+                            var redirectStub = ImgServerClientServiceGrpc.newStub(redirectChannel);
+                            downloadWithChannelClose(redirectStub, requestId, redirectChannel);
                         }
                         case "PROCESSING" -> {
                             System.out.println("[Client] Ainda a processar " + requestId + " ...");
@@ -236,6 +235,38 @@ public class Main {
 
         stub.downloadImage(DownloadImageRequest.newBuilder().setRequestId(requestId).build(), respObs);
     }
+
+    static void downloadWithChannelClose(
+            ImgServerClientServiceGrpc.ImgServerClientServiceStub stub,
+            String requestId,
+            ManagedChannel channelToClose) {
+
+        stub.downloadImage(
+                DownloadImageRequest.newBuilder().setRequestId(requestId).build(),
+                new StreamObserver<DownloadImageChunk>() {
+
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+                    @Override
+                    public void onNext(DownloadImageChunk chunk) {
+                        // Igual ao onNext normal, processa dados/status...
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        System.err.println("[Client] Erro em redirect: " + t.getMessage());
+                        channelToClose.shutdownNow();  // FECHA AQUI
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        System.out.println("[Client] Download redirect completo!");
+                        channelToClose.shutdownNow();  // ← FECHA AQUI QUANDO TERMINA
+                    }
+                }
+        );
+    }
+
 
     static void debug(String msg) {
         if (DEBUG) System.out.println(msg);
