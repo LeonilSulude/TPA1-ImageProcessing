@@ -35,24 +35,40 @@ public class Main {
 
         debug("[DEBUG] Stack IPv4 + DNS configurado com sucesso.");
 
-        // === Obter ImgServer do ManagerServer ===
-        String managerIp = System.getProperty("managerIp", "127.0.0.1");
-        int managerPort = Integer.parseInt(System.getProperty("managerPort", "50051"));
-        System.out.printf("[Client] Ligando ao ManagerServer %s:%d ...%n", managerIp, managerPort);
+        // === Modo direto (salta Manager) OU modo normal ===
+        String directIpProp = System.getProperty("imgIp");
+        String directPortProp = System.getProperty("imgPort");
+
+        String imgIp;
+        int imgPort;
+
+        if (directIpProp != null && directPortProp != null) {
+            // ---------- MODO DIRETO ----------
+            imgIp = directIpProp.trim();
+            imgPort = Integer.parseInt(directPortProp.trim());
+            System.out.printf("[Client] MODO DIRETO: a usar ImgServer %s:%d (sem contactar Manager)%n", imgIp, imgPort);
+        } else {
+            // ---------- MODO NORMAL (usa Manager) ----------
+            // === Obter ImgServer do ManagerServer ===
+            String managerIp = System.getProperty("managerIp", "127.0.0.1");
+            int managerPort = Integer.parseInt(System.getProperty("managerPort", "50051"));
+            System.out.printf("[Client] Ligando ao ManagerServer %s:%d ...%n", managerIp, managerPort);
 
 
-        ManagedChannel managerChannel = NettyChannelBuilder.forAddress(managerIp, managerPort)
-                .usePlaintext()
-                .build();
+            ManagedChannel managerChannel = NettyChannelBuilder.forAddress(managerIp, managerPort)
+                    .usePlaintext()
+                    .build();
 
-        var mstub = ManagerServerClientServiceGrpc.newBlockingStub(managerChannel);
-        GetImgServerResponse sel = mstub.getImgServer(GetImgServerRequest.getDefaultInstance());
-        managerChannel.shutdownNow();
+            var mstub = ManagerServerClientServiceGrpc.newBlockingStub(managerChannel);
+            GetImgServerResponse sel = mstub.getImgServer(GetImgServerRequest.getDefaultInstance());
+            managerChannel.shutdownNow();
 
-        String imgIp = sel.getImgServerIp();
-        int imgPort = sel.getImgServerPort();
+            imgIp = sel.getImgServerIp();
+            imgPort = sel.getImgServerPort();
 
-        System.out.printf("[Client] ImgServer designado: %s:%d%n", imgIp, imgPort);
+            System.out.printf("[Client] ImgServer designado: %s:%d%n", imgIp, imgPort);
+
+        }
 
         // === Canal principal persistente ===
         ManagedChannel mainChannel = NettyChannelBuilder.forAddress(imgIp, imgPort)
